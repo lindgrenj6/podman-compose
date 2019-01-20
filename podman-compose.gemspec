@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'Podman Compose'
+  s.name        = 'podman-compose'
   s.version     = '0.0.0'
   s.date        = '2019-01-20'
   s.summary     = "A Gem to implement docker-compose functionality for podman"
