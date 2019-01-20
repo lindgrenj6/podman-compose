@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
 require 'podman-compose'
 
-puts Podman::Compose.hi
+pc = Podman::Compose.new(ARGV)
+pc.execute
