@@ -50,7 +50,7 @@ module Podman
       end
     end
 
-    def execute
+    def parse_compose_file
       # Read in the compose.yml file, either specified via cli arg or just using the default
       compose_file = YAML.load_file(@options[:file].nil? ? "./docker-compose.yml" : @options[:file])
       # Symbolize the keys just to make life a bit easier
@@ -71,12 +71,19 @@ module Podman
           @cli_strings[service_name] << service[:environment].map{|var| "-e #{var}"}.join(" ") unless service[:environment].nil?
           # volumes:
           @cli_strings[service_name] << service[:volumes].map{|vol| "-v #{vol}"}.join(" ") unless service[:volumes].nil?
+          ### Create the volume paths
+          service[:volumes].each do |volume|
+            myvol = volume.split(":").first
+            Dir.mkdir(myvol) unless Dir.exist?(myvol)
+          end
+
           # ports:
           @cli_strings[service_name] << service[:ports].map{|port| "-p #{port}"}.join(" ") unless service[:ports].nil?
           # privileged
           @cli_strings[service_name] << "--privileged" if service[:privileged]
-          # restart
-          @cli_strings[service_name] << "--restart=#{service[:restart]}" unless service[:restart].nil?
+          # host network because podman doesn't have the concept of creating a new network
+          @cli_strings[service_name] << "--net=host"
+          # @cli_strings[service_name] << "--net=container:#{service_to_container_name(service[:links].first)}" unless service[:links].nil?
 
           # image:
           @cli_strings[service_name] << service[:image]
@@ -97,7 +104,16 @@ module Podman
         exit
       end
 
-      pp @cli_strings
+      # pp @cli_strings
+      @cli_strings
+    end
+
+    def execute
+      @cli_strings.each do |pod, str|
+        puts "Running cmd on pod #{pod}"
+        puts "#### "  + str
+        system(str)
+      end
     end
 
     private

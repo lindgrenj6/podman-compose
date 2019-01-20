@@ -2,4 +2,5 @@
 require 'podman-compose'
 
 pc = Podman::Compose.new(ARGV)
+pc.parse_compose_file
 pc.execute
