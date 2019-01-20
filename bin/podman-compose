@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'podman-compose'
+
+puts Podman::Compose.hi
