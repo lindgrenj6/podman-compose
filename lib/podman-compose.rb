@@ -51,16 +51,19 @@ module Podman
     end
 
     def execute
+      # Read in the compose.yml file, either specified via cli arg or just using the default
+      compose_file = YAML.load_file(@options[:file].nil? ? "./docker-compose.yml" : @options[:file])
+      # Symbolize the keys just to make life a bit easier
+      compose_file = symbolize_keys(compose_file)
+
       case @cmd
       when :up
-        # Read in the compose.yml file, either specified via cli arg or just using the default
-        compose_file = YAML.load_file(@options[:file].nil? ? "./docker-compose.yml" : @options[:file])
-        # Symbolize the keys just to make life a bit easier
-        compose_file = symbolize_keys(compose_file)
-
         # Go through each of the services, creating a "podman run" command
         compose_file[:services].keys.each do |service_name|
           service = compose_file[:services][service_name.to_sym]
+          ####
+          # Off to the races...
+          ####
           @cli_strings[service_name] = []
           # service name:
           @cli_strings[service_name] << "--name #{service_to_container_name(service_name)}"
