@@ -52,7 +52,7 @@ module Podman
 
     def parse_compose_file
       # Read in the compose.yml file, either specified via cli arg or just using the default
-      compose_file = YAML.load_file(@options[:file].nil? ? "./docker-compose.yml" : @options[:file])
+      compose_file = YAML.load_file(@options[:file].nil? ? './docker-compose.yml' : @options[:file])
       # Symbolize the keys just to make life a bit easier
       compose_file = symbolize_keys(compose_file)
 
@@ -68,21 +68,21 @@ module Podman
           # service name:
           @cli_strings[service_name] << "--name #{service_to_container_name(service_name)}"
           # environment:
-          @cli_strings[service_name] << service[:environment].map{|var| "-e #{var}"}.join(" ") unless service[:environment].nil?
+          @cli_strings[service_name] << service[:environment].map { |var| "-e #{var}" }.join(' ') unless service[:environment].nil?
           # volumes:
-          @cli_strings[service_name] << service[:volumes].map{|vol| "-v #{vol}"}.join(" ") unless service[:volumes].nil?
+          @cli_strings[service_name] << service[:volumes].map { |vol| "-v #{vol}" }.join(' ') unless service[:volumes].nil?
           ### Create the volume paths
           service[:volumes].each do |volume|
-            myvol = volume.split(":").first
+            myvol = volume.split(':').first
             Dir.mkdir(myvol) unless Dir.exist?(myvol)
           end
 
           # ports:
-          @cli_strings[service_name] << service[:ports].map{|port| "-p #{port}"}.join(" ") unless service[:ports].nil?
+          @cli_strings[service_name] << service[:ports].map { |port| "-p #{port}" }.join(' ') unless service[:ports].nil?
           # privileged
-          @cli_strings[service_name] << "--privileged" if service[:privileged]
+          @cli_strings[service_name] << '--privileged' if service[:privileged]
           # host network because podman doesn't have the concept of creating a new network
-          @cli_strings[service_name] << "--net=host"
+          @cli_strings[service_name] << '--net=host'
           # @cli_strings[service_name] << "--net=container:#{service_to_container_name(service[:links].first)}" unless service[:links].nil?
 
           # image:
@@ -90,7 +90,7 @@ module Podman
         end
 
         # Map the keys to super nice command strings to run
-        @cli_strings.transform_values! { |cmd| "podman run -d #{cmd.join(" ")}" }
+        @cli_strings.transform_values! { |cmd| "podman run -d #{cmd.join(' ')}" }
       when :down
         compose_file[:services].keys.each do |service_name|
           @cli_strings[service_name] = []
@@ -98,9 +98,9 @@ module Podman
         end
 
         # Map the keys to super nice command strings to run
-        @cli_strings.transform_values! { |cmd| "podman stop #{cmd.join(" ")}" }
+        @cli_strings.transform_values! { |cmd| "podman stop #{cmd.join(' ')}" }
       when :build
-        puts "Not implemented yet!"
+        puts 'Not implemented yet!'
         exit
       end
 
@@ -111,7 +111,7 @@ module Podman
     def execute
       @cli_strings.each do |pod, str|
         puts "Running cmd on pod #{pod}"
-        puts "#### "  + str
+        puts '#### ' + str
         system(str)
       end
     end
@@ -120,12 +120,12 @@ module Podman
 
     # Get the name for the container in the form "dir_containername"
     def service_to_container_name(service_name)
-      [File.basename(Dir.getwd), service_name].join("_")
+      [File.basename(Dir.getwd), service_name].join('_')
     end
 
     # If I had rails I wouldn't have had to copy/paste this BS. But so be it.
     def symbolize_keys(hash)
-      Hash[ hash.map { |k,v| v.is_a?(Hash) ? [k.to_sym, symbolize_keys(v)] : [k.to_sym,v] } ]
+      Hash[hash.map { |k, v| v.is_a?(Hash) ? [k.to_sym, symbolize_keys(v)] : [k.to_sym, v] }]
     end
   end
 end
