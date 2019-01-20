@@ -100,8 +100,13 @@ module Podman
         # Map the keys to super nice command strings to run
         @cli_strings.transform_values! { |cmd| "podman stop #{cmd.join(' ')}" }
       when :build
-        puts 'Not implemented yet!'
-        exit
+        compose_file[:services].keys.each do |service_name|
+          service = compose_file[:services][service_name.to_sym]
+          next unless service[:build].nil?
+
+          system("podman build -t #{service_to_container_name(service_name)} #{service[:build][:context]}")
+          puts "Built #{service_to_container_name(service_name)}"
+        end
       end
 
       # pp @cli_strings
