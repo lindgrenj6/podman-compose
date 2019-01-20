@@ -1,7 +1,7 @@
 module Podman
   class Compose
     def self.hi
-      puts "hello!"
+      "hello!"
     end
   end
 end
