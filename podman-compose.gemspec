@@ -7,7 +7,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Jacob Lindgren"]
   s.email       = 'jlindgre@redhat.com'
   s.files       = ["lib/podman-compose.rb"]
+  s.executables << 'podman-compose'
   s.homepage    =
     'http://rubygems.org/gems/podman-compose'
-  s.license       = 'GPLv3'
+  s.license       = 'GPL-3.0'
 end
