@@ -62,8 +62,20 @@ module Podman
         compose_file[:services].keys.each do |service_name|
           service = compose_file[:services][service_name.to_sym]
           @cli_strings[service_name] = []
+          # service name:
           @cli_strings[service_name] << "--name #{service_to_container_name(service_name)}"
+          # environment:
+          @cli_strings[service_name] << service[:environment].map{|var| "-e #{var}"}.join(" ") unless service[:environment].nil?
+          # volumes:
+          @cli_strings[service_name] << service[:volumes].map{|vol| "-v #{vol}"}.join(" ") unless service[:volumes].nil?
+          # ports:
+          @cli_strings[service_name] << service[:ports].map{|port| "-p #{port}"}.join(" ") unless service[:ports].nil?
+          # privileged
+          @cli_strings[service_name] << "--privileged" if service[:privileged]
+          # restart
+          @cli_strings[service_name] << "--restart=#{service[:restart]}" unless service[:restart].nil?
 
+          # image:
           @cli_strings[service_name] << service[:image]
         end
 
@@ -77,6 +89,9 @@ module Podman
 
         # Map the keys to super nice command strings to run
         @cli_strings.transform_values! { |cmd| "podman stop #{cmd.join(" ")}" }
+      when :build
+        puts "Not implemented yet!"
+        exit
       end
 
       pp @cli_strings
