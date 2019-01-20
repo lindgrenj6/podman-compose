@@ -79,6 +79,7 @@ module Podman
 
           # ports:
           @cli_strings[service_name] << service[:ports].map { |port| "-p #{port}" }.join(' ') unless service[:ports].nil?
+          ## TODO: Add warning if no ports are mapped, due to the fact that networking is a pain
           # privileged
           @cli_strings[service_name] << '--privileged' if service[:privileged]
           # host network because podman doesn't have the concept of creating a new network
@@ -87,6 +88,7 @@ module Podman
 
           # image:
           @cli_strings[service_name] << service[:image]
+          # TODO: Handle if image was built.
         end
 
         # Map the keys to super nice command strings to run
