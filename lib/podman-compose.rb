@@ -44,6 +44,8 @@ module Podman
         @cmd = :down
       when 'build'
         @cmd = :build
+      when 'rm'
+        @cmd = :rm
       else
         puts @options[:help]
         exit
@@ -101,6 +103,14 @@ module Podman
 
         # Map the keys to super nice command strings to run
         @cli_strings.transform_values! { |cmd| "sudo podman stop #{cmd.join(' ')}" }
+      when :rm
+        compose_file[:services].keys.each do |service_name|
+          @cli_strings[service_name] = []
+          @cli_strings[service_name] << service_to_container_name(service_name)
+        end
+
+        # Map the keys to super nice command strings to run
+        @cli_strings.transform_values! { |cmd| "sudo podman rm -f #{cmd.join(' ')}" }
       when :build
         compose_file[:services].keys.each do |service_name|
           service = compose_file[:services][service_name.to_sym]
