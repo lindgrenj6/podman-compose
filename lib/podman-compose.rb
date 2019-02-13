@@ -83,7 +83,7 @@ module Podman
           # privileged
           @cli_strings[service_name] << '--privileged' if service[:privileged]
           # host network because podman doesn't have the concept of creating a new network
-          @cli_strings[service_name] << '--net=host'
+          # @cli_strings[service_name] << '--net=host'
           # @cli_strings[service_name] << "--net=container:#{service_to_container_name(service[:links].first)}" unless service[:links].nil?
 
           # image:
@@ -92,7 +92,7 @@ module Podman
         end
 
         # Map the keys to super nice command strings to run
-        @cli_strings.transform_values! { |cmd| "podman run -d #{cmd.join(' ')}" }
+        @cli_strings.transform_values! { |cmd| "sudo podman run -d #{cmd.join(' ')}" }
       when :down
         compose_file[:services].keys.each do |service_name|
           @cli_strings[service_name] = []
@@ -100,13 +100,13 @@ module Podman
         end
 
         # Map the keys to super nice command strings to run
-        @cli_strings.transform_values! { |cmd| "podman stop #{cmd.join(' ')}" }
+        @cli_strings.transform_values! { |cmd| "sudo podman stop #{cmd.join(' ')}" }
       when :build
         compose_file[:services].keys.each do |service_name|
           service = compose_file[:services][service_name.to_sym]
           next unless service[:build].nil?
 
-          system("podman build -t #{service_to_container_name(service_name)} #{service[:build][:context]}")
+          system("sudo podman build -t #{service_to_container_name(service_name)} #{service[:build][:context]}")
           puts "Built #{service_to_container_name(service_name)}"
         end
       end
