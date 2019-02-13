@@ -60,13 +60,20 @@ module Podman
 
       case @cmd
       when :up
+        if %x[sudo podman ps -a | grep #{compose_file[:services].keys.first}].lines.count > 0
+          @exists = true
+        end
+
         # Go through each of the services, creating a "podman run" command
         compose_file[:services].keys.each do |service_name|
-          service = compose_file[:services][service_name.to_sym]
-          ####
-          # Off to the races...
-          ####
           @cli_strings[service_name] = []
+
+          service = compose_file[:services][service_name.to_sym]
+          if @exists
+            @cli_strings[service_name] << service_to_container_name(service_name)
+            next
+          end
+
           # service name:
           @cli_strings[service_name] << "--name #{service_to_container_name(service_name)}"
           # environment:
@@ -94,7 +101,11 @@ module Podman
         end
 
         # Map the keys to super nice command strings to run
-        @cli_strings.transform_values! { |cmd| "sudo podman run -d #{cmd.join(' ')}" }
+        if @exists
+          @cli_strings.transform_values! { |cmd| "sudo podman start #{cmd.join(' ')}" }
+        else
+          @cli_strings.transform_values! { |cmd| "sudo podman run -d #{cmd.join(' ')}" }
+        end
       when :down
         compose_file[:services].keys.each do |service_name|
           @cli_strings[service_name] = []
