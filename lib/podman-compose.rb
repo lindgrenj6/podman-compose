@@ -4,25 +4,23 @@ require 'optparse'
 require 'logger'
 require 'pry'
 require 'pp'
+require 'fileutils'
 
 # Using a module to set up a namespace
 module Podman
-  # Heres where the meat is
   class Compose
     def initialize(args)
       @cli_strings = {}
       @logger = Logger.new(STDOUT)
       @options = {}
 
-      # Parse my arguments
-      # THIS ISN'T WORKING YET. I'LL GET TO IT WHEN I GET BASE FUNCTIONALITY WORKING.
       OptionParser.new do |opts|
         opts.banner = 'Usage: podman-compose cmd [options]'
 
         opts.on('-v', 'Show verbose output') do |_v|
           @logger.level = Logger::DEBUG
         end
-        opts.on('-f', 'Specify which compose file to run (default is ./docker-compose.yml)') do |v|
+        opts.on('-f FILE', String, 'Specify which compose file to run (default is ./docker-compose.yml)') do |v|
           @options[:file] = v
         end
         opts.on('-w', 'Watch logs for services') do |_w|
@@ -37,19 +35,7 @@ module Podman
         @options[:help] = opts.help
       end.parse!(into: @options)
 
-      case args.first.downcase
-      when 'up'
-        @cmd = :up
-      when 'down'
-        @cmd = :down
-      when 'build'
-        @cmd = :build
-      when 'rm'
-        @cmd = :rm
-      else
-        puts @options[:help]
-        exit
-      end
+      @cmd = args.first.downcase.to_sym
     end
 
     def parse_compose_file
@@ -60,9 +46,7 @@ module Podman
 
       case @cmd
       when :up
-        if %x[sudo podman ps -a | grep #{compose_file[:services].keys.first}].lines.count > 0
-          @exists = true
-        end
+        @exists = `sudo podman ps -a | grep #{File.basename(Dir.getwd) + "_" + compose_file[:services].keys.first.to_s}`.lines.count > 0
 
         # Go through each of the services, creating a "podman run" command
         compose_file[:services].keys.each do |service_name|
@@ -79,11 +63,13 @@ module Podman
           # environment:
           @cli_strings[service_name] << service[:environment].map { |var| "-e #{var}" }.join(' ') unless service[:environment].nil?
           # volumes:
-          @cli_strings[service_name] << service[:volumes].map { |vol| "-v #{vol}" }.join(' ') unless service[:volumes].nil?
-          ### Create the volume paths
-          service[:volumes].each do |volume|
-            myvol = volume.split(':').first
-            Dir.mkdir(myvol) unless Dir.exist?(myvol)
+          unless service[:volumes].nil?
+            @cli_strings[service_name] << service[:volumes].map { |vol| "-v #{vol}" }.join(' ')
+            ### Create the volume paths
+            service[:volumes].each do |volume|
+              myvol = volume.split(':').first
+              FileUtils.mkdir_p(myvol) unless Dir.exist?(myvol)
+            end
           end
 
           # ports:
