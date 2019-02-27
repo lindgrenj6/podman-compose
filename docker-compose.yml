@@ -9,7 +9,7 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_DB=service_portal_development
     ports:
-      - 5432:5432
+      - 5435:5432
   test_db:
     image: postgres:9.5
     volumes:
@@ -18,4 +18,4 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_DB=service_portal_test
     ports:
-      - 5433:5432
+      - 5436:5432

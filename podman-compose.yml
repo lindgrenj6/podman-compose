@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  dev_db:
+    image: postgres:9.5
+    volumes:
+      - /tmp/db:/var/lib/psql
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_DB=service_portal_development
+    ports:
+      - 5435:5432
