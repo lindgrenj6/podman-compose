@@ -1,4 +1,7 @@
-# podman-compose
+# DEPRECATED
+Use the python package from pip `podman-compose`, src: https://github.com/containers/podman-compose
+
+### podman-compose
 A gem to implement docker-compose-ish functionality for podman
 
 _*DISLAIMER*_  
